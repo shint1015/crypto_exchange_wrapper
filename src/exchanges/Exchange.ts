@@ -21,7 +21,8 @@ export type FormatOrder = {
     orderFee: decType
     fromAmount: decType
     toAmount: decType
-    orderStatus: string
+    orderStatus: OrderStatus
+
 }
 
 export class Exchange {

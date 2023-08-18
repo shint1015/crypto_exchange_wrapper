@@ -1,8 +1,8 @@
 import { generateHMAC, generateUUID } from "../utils/utils.js";
-import {httpGet, httpPost, HttpResponse} from "../utils/request.js";
+import {httpGet, httpPost, httpDelete, HttpResponse} from "../utils/request.js";
 import { Decimal, decType } from "../utils/calc";
 import BigNumber from "bignumber.js";
-import { OrderSide, ExchangeType } from "./Exchange";
+import { OrderSide, ExchangeType, FormatOrder } from "./Exchange";
 
 
 
@@ -122,23 +122,26 @@ class Kucoin implements KucoinImplement {
         headers: {[key: string]: string} = {},
         parameters: {[key: string]: string} = {},
         returnTarget: U = "data" as U,
-    ): Promise<T[U] | undefined> {
+    ): Promise<T[U]> {
         try {
             let response: HttpResponse | undefined;
             if (method === 'GET') {
                 response = await httpGet(endPoint);
             } else if (method === 'POST') {
                 response = await httpPost(endPoint, headers, parameters);
+            } else if (method === 'DELETE') {
+                response = await httpDelete(endPoint, headers, parameters);
             } else {
-                return undefined;
+                throw new Error("Not supported method");
             }
 
             if (response === undefined) {
-                return undefined;
+                throw new Error("Response is undefined");
             }
             const toObj = JSON.parse(response.Body) as T;
             return toObj[returnTarget];
         }catch (e) {
+            console.error(e)
             throw e;
         }
     }
@@ -396,38 +399,177 @@ class Kucoin implements KucoinImplement {
         return orderRate
     }
 
+    formatOrders(items: OrderData[]): [{[key: string]: FormatOrder}, string[]] {
+        let orders: {[key:string]: FormatOrder} = {}
+        let cancelOrderIds: string[] = []
+        for (const v of items) {
+            const pairSymbol = v.symbol
+            const symbols = pairSymbol.split('-')
+            const fromAmount = (v.side === 'buy') ? v.dealFunds : v.dealSize
+            const toAmount = (v.side === 'buy') ? v.dealSize : v.dealFunds
+            const fromCoin = (v.side === 'buy') ? symbols[1] : symbols[0]
+            const toCoin = (v.side === 'buy') ? symbols[0] : symbols[1]
+            let orderStatus: OrderStatus = OrderStatus.InProcess
+            if (v.size === v.dealSize) orderStatus = OrderStatus.Finish
+            if (v.cancelExist) orderStatus = OrderStatus.Cancel
 
-    // async getOrder(orderId: string): Promise<{[key:string]: FormatOrder}> {
-    //     const path = `/v1/orders/${orderId}`
-    //     const endPoint = `${this.baseUrl}${path}`
-    //     const headers = this.getHeaders('GET', path)
-    //     const orderData = await this.commonResponseProcess<Order, "data">(endPoint, 'GET', headers)
-    //
-    // }
-    //
-    //
-    // processingData(orderData: OrderData[]): {[key: string]: FormatOrder} {
-    //     let orders: {[key: string]: FormatOrder} = {}
-    //     let cancelOrderIds: string[] = []
-    //
-    //     for (const v of orderData) {
-    //         const orderType: string = v.type
-    //         const orderSide: string = v.side
-    //         const symbols: string[] = v.symbol.split('-')
-    //         const orderId: string = v.id
-    //         let fromCoin: string, toCoin: string, fromAmount: string, toAmount: string;
-    //         const orderFee = v.fee
-    //         if (orderSide === OrderSide.Buy) {
-    //             fromAmount = v.dealFunds
-    //             toAmount = v.dealSize
-    //                 [fromCoin, toCoin] = [symbols[1], symbols[0]]
-    //         } else {
-    //             fromAmount = v.dealSize
-    //             toAmount = v.dealFunds
-    //                 [fromCoin, toCoin] = [symbols[0], symbols[1]]
-    //         }
-    //     }
-    // }
+            if (v.id in orders) {
+                orders[v.id] = {
+                    symbol: pairSymbol,
+                    orderType: v.type,
+                    orderSide: v.side === 'buy' ? OrderSide.Buy : OrderSide.Sell,
+                    fromCoin:    fromCoin,
+                    toCoin:      toCoin,
+                    orderRate:   Decimal.toDec(v.price),
+                    orderFee:    Decimal.toDec(v.fee),
+                    fromAmount:  Decimal.toDec(fromAmount),
+                    toAmount:    Decimal.toDec(toAmount),
+                    orderStatus: orderStatus,
+                }
+            } else {
+                orders[v.id].fromAmount = Decimal.add(orders[v.id].fromAmount, fromAmount)
+                orders[v.id].toAmount = Decimal.add(orders[v.id].toAmount, toAmount)
+                orders[v.id].orderFee = Decimal.add(orders[v.id].orderFee, v.fee)
+            }
+        }
+        return [orders, cancelOrderIds]
+    }
+
+
+    async getOrder(orderId: string, dataType: string='format'): Promise<{[key:string]: FormatOrder}|OrderData> {
+        try{
+            const path = `/v1/orders/${orderId}`
+            const endPoint = `${this.baseUrl}${path}`
+            const headers = this.getHeaders('GET', path)
+            const orderData = await this.commonResponseProcess<Order, "data">(endPoint, 'GET', headers)
+
+            if (dataType === 'format') {
+                const [orders, _] = this.formatOrders([orderData])
+                return orders
+            } else if (dataType == 'original') {
+                return orderData
+            } else {
+                throw new Error('not supported data type')
+            }
+        } catch (e) {
+            console.error(e)
+            throw e
+        }
+    }
+
+    async getOrders(params: {[key:string]: any}, dataType: string='format'): Promise<[{[key:string]: FormatOrder}|OrderData[], string[]]> {
+        let items: OrderData[] = []
+        try{
+            if ('orderIds' in params) {
+                for (const v of params['orderIds']) {
+                    const order = await this.getOrder(v, 'original')
+                    if (this.isOrderData(order)) items.push(order)
+                }
+            } else {
+                const urlParameters = this.generateUrlParameters(params)
+                let path = '/v1/orders'
+                if (urlParameters !== '') path = `${path}?${urlParameters}`
+                const endPoint = `${this.baseUrl}${path}`
+                const headers = this.getHeaders('GET', path)
+                const orderData = await this.commonResponseProcess<OrderList, "data">(endPoint, 'GET', headers)
+                items = orderData.items
+            }
+            if (items.length === 0) throw new Error("getOrders failed.")
+            const [orders, cancelOrderIds] = this.formatOrders(items)
+            if (dataType === 'format') {
+                return [orders, cancelOrderIds]
+            } else if (dataType == 'original') {
+                return [items, cancelOrderIds]
+            } else {
+                throw new Error('not supported data type')
+            }
+        }catch (e) {
+            console.error(e)
+            throw e
+        }
+    }
+
+    async getCancelOrder(symbol: string, tradeType: string, orderIds: string[]): Promise<OrderData> {
+        const orderIdsTxt = orderIds.join(',')
+        const params:{[key: string]: string} = {"symbol": symbol, "tradeType": tradeType, "orderIds": orderIdsTxt}
+        const urlParameters = this.generateUrlParameters(this.generateParameters(params))
+        const path = `v1/stop-order?${urlParameters}`
+        const endPoint = `${this.baseUrl}${path}`
+        const headers = this.getHeaders('GET', path)
+        return this.commonResponseProcess(endPoint, 'GET', headers)
+    }
+
+    async order(orderRate: string, orderAmount: string): Promise<OrderIdData> {
+        const param = {
+            "symbol": this.symbol,
+            "side": this.orderSide,
+            "size": orderAmount,
+            "price": orderRate,
+            "type": "limit",
+            "clientOid": generateUUID()
+        }
+        const path = 'v1/orders'
+        const endPoint = `${this.baseUrl}${path}`
+        const parameters = this.generateParameters(param)
+        const headers = this.getHeaders("POST", path, parameters)
+        return this.commonResponseProcess(endPoint, 'POST', headers, parameters)
+    }
+
+    async cancelOrder(orderId: string): Promise<CancelOrderData> {
+        const path = `v1/orders/${orderId}`
+        const endPoint = `${this.baseUrl}${path}`
+        const headers = this.getHeaders('DELETE', path)
+        return this.commonResponseProcess(endPoint, 'DELETE', headers)
+    }
+
+    async cancelAllOrder(symbol: string, orderIds: string[]): Promise<CancelOrderData> {
+        let params: {[key: string]: string} = {"symbol": symbol, "tradeType": "TRADE"}
+        if (orderIds.length > 0) params['orderIds'] = orderIds.join(',')
+        const urlParameters = this.generateUrlParameters(this.generateParameters(params))
+        const path = `v1/stop-order/cancel?${urlParameters}`
+        const endPoint = `${this.baseUrl}${path}`
+        const headers = this.getHeaders('DELETE', path)
+        return this.commonResponseProcess(endPoint, 'DELETE', headers)
+    }
+
+    isOrderData(obj: any): obj is OrderData {
+        return (
+            obj &&
+            typeof obj.id === 'string' &&
+            typeof obj.symbol === 'string' &&
+            typeof obj.opType === 'string' &&
+            typeof obj.type === 'string' &&
+            typeof obj.side === 'string' &&
+            typeof obj.price === 'string' &&
+            typeof obj.size === 'string' &&
+            typeof obj.funds === 'string' &&
+            typeof obj.dealFunds === 'string' &&
+            typeof obj.dealSize === 'string' &&
+            typeof obj.fee === 'string' &&
+            typeof obj.feeCurrency === 'string' &&
+            typeof obj.stp === 'string' &&
+            typeof obj.stop === 'string' &&
+            typeof obj.stopTriggered === 'boolean' &&
+            typeof obj.stopPrice === 'string' &&
+            typeof obj.timeInForce === 'string' &&
+            typeof obj.postOnly === 'boolean' &&
+            typeof obj.hidden === 'boolean' &&
+            typeof obj.iceberg === 'boolean' &&
+            typeof obj.visibleSize === 'string' &&
+            typeof obj.cancelAfter === 'number' &&
+            typeof obj.channel === 'string' &&
+            typeof obj.clientOid === 'string' &&
+            typeof obj.remark === 'string' &&
+            typeof obj.tags === 'string' &&
+            typeof obj.isActive === 'boolean' &&
+            typeof obj.cancelExist === 'boolean' &&
+            typeof obj.createdAt === 'number' &&
+            typeof obj.tradeType === 'string'
+        );
+    }
+
+
+
 }
 
 
