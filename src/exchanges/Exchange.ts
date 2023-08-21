@@ -63,14 +63,14 @@ export class Exchange implements ExchangeImplement {
     _exchange: Kucoin;
 
 
-    constructor(exchangeType: ExchangeType, symbol: string, orderSide: OrderSide, orderType: string, dryRun: boolean = false, baseUrl: string = '') {
+    constructor(exchangeType: ExchangeType, symbol: string, orderSide: OrderSide, orderType: string, apiConf:{[key: string]: string}, dryRun: boolean = false, baseUrl: string = '') {
         this._exchangeType = exchangeType;
         this._symbol = symbol;
         this._orderSide = orderSide;
         this._orderType = orderType;
         this._dryRun = dryRun;
         if (this.exchangeType == ExchangeType.KuCoin) {
-            this._exchange = new Kucoin(this.symbol, this.orderSide, this.dryRun , baseUrl)
+            this._exchange = new Kucoin(this.symbol, this.orderSide, apiConf, this.dryRun , baseUrl)
         } else {
             throw new Error('ExchangeType is not supported')
         }

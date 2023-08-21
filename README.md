@@ -9,7 +9,7 @@ Wrapper for crypto exchanges
 
 ## Installation
 ```bash
-npm install crypto_exchange_wrapper
+npm install @shint1015/crypto_exchange_wrapper
 ```
 
 

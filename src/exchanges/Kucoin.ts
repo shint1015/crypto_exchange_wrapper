@@ -56,11 +56,23 @@ class Kucoin implements KucoinImplement {
     _orderSide: OrderSide;
     _returnUniqueId?: string;
     _dryRun: boolean;
-    constructor(symbol: string, orderSide: OrderSide, dryRun: boolean, baseUrl: string = '') {
+    private _apiPassphrase: string = ''
+    private _apiSecretKey: string = ''
+    private _apiKey: string = ''
+    constructor(symbol: string, orderSide: OrderSide, apiConf:{[key:string]: string}, dryRun: boolean, baseUrl: string = '') {
         this._baseUrl = (baseUrl !== undefined && baseUrl !== '') ? baseUrl : 'https://api.kucoin.com/api'
         this._symbol = symbol
         this._orderSide = orderSide
         this._dryRun = dryRun
+        if (apiConf['passphrase'] === undefined && apiConf['passphrase'] !== '') {
+            this._apiPassphrase = apiConf['passphrase']
+        }
+        if (apiConf['secretKey'] === undefined && apiConf['secretKey'] !== '') {
+            this._apiSecretKey = apiConf['secretKey']
+        }
+        if (apiConf['apiKey'] === undefined && apiConf['apiKey'] !== '') {
+            this._apiKey = apiConf['apiKey']
+        }
     }
 
     get baseUrl() { return this._baseUrl }
@@ -75,17 +87,14 @@ class Kucoin implements KucoinImplement {
 
     getHeaders(method: string, path: string, params: {[key: string]: string} = {}): {[key: string]: string} {
         const timestamp = Date.now()
-        const secretKey = process.env.KUCOIN_API_SECRET as string
-        const apiKey = process.env.KUCOIN_API_KEY as string
-        const passphrase = process.env.KUCOIN_API_PASSPHRASE as string
         const jsonDataStr = JSON.stringify(params)
 
         const payload = `${timestamp}${method}/api${path}${jsonDataStr}`
         return {
-            "KC-API-KEY": apiKey,
-            "KC-API-SIGN": this.generateSignature(secretKey, payload),
-            "KC-API-TIMESTAMP": this.generatePassphrase(secretKey, passphrase),
-            "KC-API-PASSPHRASE": passphrase,
+            "KC-API-KEY": this._apiKey,
+            "KC-API-SIGN": this.generateSignature(this._apiSecretKey, payload),
+            "KC-API-TIMESTAMP": this.generatePassphrase(this._apiSecretKey, this._apiPassphrase),
+            "KC-API-PASSPHRASE": this._apiPassphrase,
             "KC-API-KEY-VERSION": '2',
             "Content-Type": 'application/json'
         }
@@ -588,8 +597,6 @@ class Kucoin implements KucoinImplement {
             typeof obj.tradeType === 'string'
         );
     }
-
-
 
 }
 
