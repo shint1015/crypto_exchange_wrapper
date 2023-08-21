@@ -9,13 +9,13 @@ type CommonResponse = {
     msg: string
 }
 
-type MarketListData = string[];
+type KucoinMarketListData = string[];
 
-type MarketList = CommonResponse & {
+type KucoinMarketList = CommonResponse & {
     data: MarketListData
 }
 
-type MarketInfoData = {
+type KucoinMarketInfoData = {
     symbol: string
     name: string
     baseCurrency: string
@@ -35,11 +35,11 @@ type MarketInfoData = {
     enableTrading: boolean
 }
 
-type MarketInfo = CommonResponse & {
-    data: MarketInfoData[]
+type KucoinMarketInfo = CommonResponse & {
+    data: KucoinMarketInfoData[]
 }
 
-type MarketStatusData = {
+type KucoinMarketStatusData = {
     currency: string
     name: string
     fullName: string
@@ -51,11 +51,11 @@ type MarketStatusData = {
     chains: { [key: string]: any }
 }
 
-type MarketStatus = CommonResponse & {
+type KucoinMarketStatus = CommonResponse & {
     data: MarketStatusData
 }
 
-type TickerData = {
+type KucoinTickerData = {
     sequence: string
     bestAsk: string
     size: string
@@ -66,21 +66,21 @@ type TickerData = {
     time: number
 }
 
-type Ticker = CommonResponse & {
+type KucoinTicker = CommonResponse & {
     data: TickerData
 }
 
-type TradeFeeData = {
+type KucoinTradeFeeData = {
     symbol: string,
     takerFeeRate: string,
     makerFeeRate: string
 }
 
-type TradeFee = CommonResponse & {
+type KucoinTradeFee = CommonResponse & {
     data: TradeFeeData[]
 }
 
-type TradeHistoryData = {
+type KucoinTradeHistoryData = {
     sequence: string,
     price: string,
     size: string,
@@ -88,11 +88,11 @@ type TradeHistoryData = {
     time: number
 }
 
-type TradeHistory = CommonResponse & {
+type KucoinTradeHistory = CommonResponse & {
     data: TradeHistoryData[]
 }
 
-type AccountInfoData = {
+type KucoinAccountInfoData = {
     id: string,
     currency: string,
     type: string,
@@ -101,22 +101,22 @@ type AccountInfoData = {
     holds: string
 }
 
-type AccountInfo = CommonResponse & {
-    data: AccountInfoData[]
+type KucoinAccountInfo = CommonResponse & {
+    data: KucoinAccountInfoData[]
 }
 
-type OrderBookData = {
+type KucoinOrderBookData = {
     time: number,
     sequence: string,
     bids: string[][],
     asks: string[][]
 }
 
-type OrderBook = CommonResponse & {
-    data: OrderBookData
+type KucoinOrderBook = CommonResponse & {
+    data: KucoinOrderBookData
 }
 
-type TransferData = {
+type KucoinTransferData = {
     currency: string,
     balance: string,
     available: string,
@@ -124,26 +124,26 @@ type TransferData = {
     transferable: string
 }
 
-type Transfer = CommonResponse & {
+type KucoinTransfer = CommonResponse & {
     data: TransferData
 }
 
-type OrderIdData = {
+type KucoinOrderIdData = {
     orderId: string
 }
-type SendOrder = CommonResponse & {
+type KucoinSendOrder = CommonResponse & {
     data: OrderIdData
 }
 
-type CancelOrderData = {
+type KucoinCancelOrderData = {
     cancelledOrderIds: string[]
 }
 
-type CancelOrder = CommonResponse & {
+type KucoinCancelOrder = CommonResponse & {
     data: CancelOrderData
 }
 
-type OrderData = {
+type KucoinOrderData = {
     id: string
     symbol: string
     opType: string
@@ -176,11 +176,11 @@ type OrderData = {
     tradeType: string
 }
 
-type Order = CommonResponse & {
+type KucoinOrder = CommonResponse & {
     data: OrderData
 }
 
-type OrderDataList = {
+type KucoinOrderDataList = {
     currentPage: number
     pageSize: number
     totalNum: number
@@ -188,29 +188,29 @@ type OrderDataList = {
     items: OrderData[]
 }
 
-type OrderList = CommonResponse & {
+type KucoinOrderList = CommonResponse & {
     data: OrderDataList
 }
 
-type InnerTransfer = CommonResponse & {
+type KucoinInnerTransfer = CommonResponse & {
     data: OrderIdData
 }
 
-type DepositAddressData = {
+type KucoinDepositAddressData = {
     address: string,
     memo: string,
     chain: string
 }
 
-type DepositAddress = CommonResponse & {
+type KucoinDepositAddress = CommonResponse & {
     data: DepositAddressData
 }
 
-type DepositAddressList = CommonResponse & {
+type KucoinDepositAddressList = CommonResponse & {
     data: DepositAddressData[]
 }
 
-type UserInfoData = {
+type KucoinUserInfoData = {
     userId: string,
     uid: number,
     subName: string,
@@ -219,11 +219,11 @@ type UserInfoData = {
     access: string,
 }
 
-type UserInfo = CommonResponse & {
+type KucoinUserInfo = CommonResponse & {
     data: UserInfoData[]
 }
 
-type DepositHistoryDataItem = {
+type KucoinDepositHistoryDataItem = {
     currency: string,
     chain: string,
     status: string,
@@ -238,7 +238,7 @@ type DepositHistoryDataItem = {
     remark: string,
 }
 
-type DepositHistoryData = {
+type KucoinDepositHistoryData = {
     currentPage: number,
     pageSize: number,
     totalNum: number,
@@ -246,6 +246,6 @@ type DepositHistoryData = {
     items: DepositHistoryDataItem[]
 }
 
-type DepositHistory = CommonResponse & {
-    data: DepositAddressData
+type KucoinDepositHistory = CommonResponse & {
+    data: KucoinDepositHistoryData
 }
