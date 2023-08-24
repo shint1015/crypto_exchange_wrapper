@@ -10,16 +10,21 @@ export type HttpResponse = {
 
 const logger = new Logger("dev", "request")
 
-async function httpRequest(method: string, url: string, headers?: {[key: string]: string}, parameters?: {[key: string]: any}): Promise<HttpResponse|undefined> {
+async function httpRequest(method: string, url: string, headers?: {[key: string]: string}, parameters?: {[key: string]: any}): Promise<HttpResponse> {
     try{
-      const response = await fetch(url,{
-          method,
-          headers,
-          body: !isObjectEmpty(parameters) ? JSON.stringify(parameters): undefined
-      })
+        const req = new Request(url, {
+            method: method,
+            body: !isObjectEmpty(parameters) ? JSON.stringify(parameters): undefined
+        });
+        if (headers !== undefined && !isObjectEmpty(headers)) {
+            for (const [key, value] of Object.entries(headers || {})) {
+                req.headers.set(key, value);
+            }
+        }
+        const response = await fetch(req);
         if (!response.ok) {
-            await logger.error(`HTTP Error: Status:${response.status} - ${response.statusText}`)
-            return undefined
+            const resJson = await response.json()
+            throw new Error(`HTTP Error: Status:${response.status} - ${response.statusText} : ${resJson}`)
         }
         const responseData = await response.json();
 
