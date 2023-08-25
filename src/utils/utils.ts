@@ -8,7 +8,7 @@ function isObjectEmpty(obj?: {[key: string]: any}): boolean {
 }
 
 function generateHMAC(secretKey: string, message: string): string {
-    const key = Buffer.from(secretKey, 'utf-8');
+    const key = Buffer.from(secretKey);
     const messageBytes = Buffer.from(message, 'utf-8')
     const hmac = crypto.createHmac('sha256', key)
     hmac.update(messageBytes)

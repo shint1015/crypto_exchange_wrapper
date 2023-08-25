@@ -16,15 +16,13 @@ async function httpRequest(method: string, url: string, headers?: {[key: string]
             method: method,
             body: !isObjectEmpty(parameters) ? JSON.stringify(parameters): undefined
         });
-        if (headers !== undefined && !isObjectEmpty(headers)) {
-            for (const [key, value] of Object.entries(headers || {})) {
-                req.headers.set(key, value);
-            }
+        for (const [key, value] of Object.entries(headers || {})) {
+            req.headers.set(key, value);
         }
         const response = await fetch(req);
         if (!response.ok) {
             const resJson = await response.json()
-            throw new Error(`HTTP Error: Status:${response.status} - ${response.statusText} : ${resJson}`)
+            throw new Error(`HTTP Error: Status:${response.status} - ${response.statusText} : ${JSON.stringify(resJson)}`)
         }
         const responseData = await response.json();
 

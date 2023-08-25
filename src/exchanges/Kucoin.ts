@@ -88,14 +88,13 @@ class Kucoin implements KucoinImplement {
 
     getHeaders(method: string, path: string, params: {[key: string]: string} = {}): {[key: string]: string} {
         const timestamp = Date.now()
-        const jsonDataStr = JSON.stringify(params)
-
+        const jsonDataStr: string =  (Object.keys(params).length > 0) ? JSON.stringify(params) : ''
         const payload = `${timestamp}${method}/api${path}${jsonDataStr}`
         return {
             "KC-API-KEY": this._apiKey,
             "KC-API-SIGN": this.generateSignature(this._apiSecretKey, payload),
-            "KC-API-TIMESTAMP": this.generatePassphrase(this._apiSecretKey, this._apiPassphrase),
-            "KC-API-PASSPHRASE": this._apiPassphrase,
+            "KC-API-TIMESTAMP": timestamp + '',
+            "KC-API-PASSPHRASE": this.generatePassphrase(this._apiSecretKey, this._apiPassphrase),
             "KC-API-KEY-VERSION": '2',
             "Content-Type": 'application/json'
         }
@@ -158,9 +157,13 @@ class Kucoin implements KucoinImplement {
 
             if (response === undefined) {
                 throw new Error("Response is undefined");
-            } else if (JSON.parse(JSON.stringify(response.Body))[returnTarget].length === 0) {
-                throw new Error("Response is empty");
             }
+            const checkResponse = JSON.parse(JSON.stringify(response.Body))
+            if (!checkResponse.hasOwnProperty(returnTarget) || Object.keys(checkResponse[returnTarget]).length === 0) {
+                return checkResponse[returnTarget] as T[U];
+            }
+
+
             const toObj = JSON.parse(response.Body) as T;
             return toObj[returnTarget];
         }catch (e) {
