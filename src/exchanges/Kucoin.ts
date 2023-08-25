@@ -1,8 +1,8 @@
 import { generateHMAC, generateUUID } from "../utils/utils.js";
 import {httpGet, httpPost, httpDelete, HttpResponse} from "../utils/request.js";
-import { Decimal, decType } from "../utils/calc";
+import { Decimal, decType } from "../utils/calc.js";
 import BigNumber from "bignumber.js";
-import { OrderSide, ExchangeType, FormatOrder } from "./Exchange";
+import { OrderSide, ExchangeType, FormatOrder } from "./Exchange.js";
 import * as path from "path";
 
 
@@ -158,6 +158,8 @@ class Kucoin implements KucoinImplement {
 
             if (response === undefined) {
                 throw new Error("Response is undefined");
+            } else if (JSON.parse(JSON.stringify(response.Body))[returnTarget].length === 0) {
+                throw new Error("Response is empty");
             }
             const toObj = JSON.parse(response.Body) as T;
             return toObj[returnTarget];
