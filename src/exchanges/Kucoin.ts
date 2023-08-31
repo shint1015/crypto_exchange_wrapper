@@ -159,7 +159,7 @@ class Kucoin implements KucoinImplement {
                 throw new Error('Response is undefined');
             }
             const checkResponse = JSON.parse(JSON.stringify(response.Body))
-            if (checkDataExist(checkResponse, returnTarget.toString())) {
+            if (!checkDataExist(checkResponse, returnTarget.toString())) {
                 return checkResponse[returnTarget] as T[U];
             }
             const toObj = checkResponse as T;
