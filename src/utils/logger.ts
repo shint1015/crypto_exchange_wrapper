@@ -35,7 +35,7 @@ export class Logger {
                 transports: new winston.transports.Console()
         })
 
-        if (this.stage !== "prod") {
+        if (this.stage !== 'prod') {
             this.logger.clear()
             this.logger.add(
                 new winston.transports.Console({
@@ -61,16 +61,16 @@ export class Logger {
     }
 
     async info(message: string): Promise<void> {
-        await this.logOutput(message, "info")
+        await this.logOutput(message, 'info')
     }
     async debug(message: string): Promise<void> {
-        await this.logOutput(message, "debug")
+        await this.logOutput(message, 'debug')
     }
     async warn(message: string): Promise<void> {
-        await this.logOutput(message, "warn")
+        await this.logOutput(message, 'warn')
     }
     async error(message: string): Promise<void> {
-        await this.logOutput(message, "error")
+        await this.logOutput(message, 'error')
     }
 
 

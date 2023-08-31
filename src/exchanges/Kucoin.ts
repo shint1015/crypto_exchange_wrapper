@@ -1,9 +1,9 @@
-import { generateHMAC, generateUUID } from "../utils/utils.js";
-import {httpGet, httpPost, httpDelete, HttpResponse} from "../utils/request.js";
-import { Decimal, decType } from "../utils/calc.js";
-import BigNumber from "bignumber.js";
-import { OrderSide, ExchangeType, FormatOrder } from "./Exchange.js";
-import * as path from "path";
+import { generateHMAC, generateUUID } from '../utils/utils.js';
+import {httpGet, httpPost, httpDelete, HttpResponse} from '../utils/request.js';
+import { Decimal, decType } from '../utils/calc.js';
+import BigNumber from 'bignumber.js';
+import { OrderSide, ExchangeType, FormatOrder } from './Exchange.js';
+import * as path from 'path';
 
 
 
@@ -91,12 +91,12 @@ class Kucoin implements KucoinImplement {
         const jsonDataStr: string =  (Object.keys(params).length > 0) ? JSON.stringify(params) : ''
         const payload = `${timestamp}${method}/api${path}${jsonDataStr}`
         return {
-            "KC-API-KEY": this._apiKey,
-            "KC-API-SIGN": this.generateSignature(this._apiSecretKey, payload),
-            "KC-API-TIMESTAMP": timestamp + '',
-            "KC-API-PASSPHRASE": this.generatePassphrase(this._apiSecretKey, this._apiPassphrase),
-            "KC-API-KEY-VERSION": '2',
-            "Content-Type": 'application/json'
+            'KC-API-KEY': this._apiKey,
+            'KC-API-SIGN': this.generateSignature(this._apiSecretKey, payload),
+            'KC-API-TIMESTAMP': timestamp + '',
+            'KC-API-PASSPHRASE': this.generatePassphrase(this._apiSecretKey, this._apiPassphrase),
+            'KC-API-KEY-VERSION': '2',
+            'Content-Type': 'application/json'
         }
     }
 
@@ -104,7 +104,7 @@ class Kucoin implements KucoinImplement {
         const result: { [key: string]: string } = {}
         for(const [key, value] of Object.entries(params)) {
             if (typeof value === 'string') {
-                if (key === "symbol" && this.symbol !== "") {
+                if (key === 'symbol' && this.symbol !== '') {
                     result[key] = this.symbol
                 } else {
                     result[key] = value
@@ -119,9 +119,9 @@ class Kucoin implements KucoinImplement {
     generateUrlParameters(params: {[key: string]: string}): string {
         let result: string = ''
         for (const [key, value] of Object.entries(params)) {
-            if (value !== "") {
-                if (result !== "") {
-                    result += "&"
+            if (value !== '') {
+                if (result !== '') {
+                    result += '&'
                 }
                 result += `${key}=${value}`
             }
@@ -141,7 +141,7 @@ class Kucoin implements KucoinImplement {
         method: string,
         headers: {[key: string]: string} = {},
         parameters: {[key: string]: string} = {},
-        returnTarget: U = "data" as U,
+        returnTarget: U = 'data' as U,
     ): Promise<T[U]> {
         try {
             let response: HttpResponse | undefined;
@@ -152,19 +152,18 @@ class Kucoin implements KucoinImplement {
             } else if (method === 'DELETE') {
                 response = await httpDelete(endPoint, headers, parameters);
             } else {
-                throw new Error("Not supported method");
+                throw new Error('Not supported method');
             }
 
             if (response === undefined) {
-                throw new Error("Response is undefined");
+                throw new Error('Response is undefined');
             }
             const checkResponse = JSON.parse(JSON.stringify(response.Body))
             if (!checkResponse.hasOwnProperty(returnTarget) || Object.keys(checkResponse[returnTarget]).length === 0) {
                 return checkResponse[returnTarget] as T[U];
             }
 
-
-            const toObj = JSON.parse(response.Body) as T;
+            const toObj = checkResponse as T;
             return toObj[returnTarget];
         }catch (e) {
             console.error(e)
@@ -174,7 +173,7 @@ class Kucoin implements KucoinImplement {
     async getMarketList(): Promise<KucoinMarketListData|undefined> {
         try {
             const endPoint = `${this.baseUrl}/v1/markets`
-            return await this.commonResponseProcess<KucoinMarketList, "data">(endPoint, 'GET')
+            return await this.commonResponseProcess<KucoinMarketList, 'data'>(endPoint, 'GET')
         }catch (e) {
             throw e;
         }
@@ -183,7 +182,7 @@ class Kucoin implements KucoinImplement {
     async getMarketInfo(market: string): Promise<KucoinMarketInfoData[]|undefined> {
         try {
             const endPoint = `${this.baseUrl}/v2/symbols?market=${market}`
-            return await this.commonResponseProcess<KucoinMarketInfo, "data">(endPoint, 'GET')
+            return await this.commonResponseProcess<KucoinMarketInfo, 'data'>(endPoint, 'GET')
         }catch (e) {
             throw e;
         }
@@ -192,7 +191,7 @@ class Kucoin implements KucoinImplement {
     async getMarketStatus(currency: string): Promise<KucoinMarketStatusData|undefined> {
         try {
             const endPoint = `${this.baseUrl}/v2/currencies/${currency}`
-            return await this.commonResponseProcess<KucoinMarketStatus, "data">(endPoint, 'GET')
+            return await this.commonResponseProcess<KucoinMarketStatus, 'data'>(endPoint, 'GET')
         }catch (e) {
             throw e;
         }
@@ -201,7 +200,7 @@ class Kucoin implements KucoinImplement {
     async getTicker(symbol: string): Promise<KucoinTickerData> {
         try {
             const endPoint = `${this.baseUrl}/v1/market/orderbook/level1?symbol=${symbol}`
-            return await this.commonResponseProcess<KucoinTicker, "data">(endPoint, 'GET')
+            return await this.commonResponseProcess<KucoinTicker, 'data'>(endPoint, 'GET')
         }catch (e) {
             throw e;
         }
@@ -212,7 +211,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/trade-fees?symbols=${symbols}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinTradeFee, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinTradeFee, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -223,7 +222,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/market/histories?symbol=${symbol}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinTradeHistory, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinTradeHistory, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -234,7 +233,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/accounts`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinAccountInfo, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinAccountInfo, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -244,7 +243,7 @@ class Kucoin implements KucoinImplement {
         try {
             const transfer = await this.getTransfer(symbol, 'TRADE')
             if (transfer === undefined) {
-                throw new Error("Transfer is undefined")
+                throw new Error('Transfer is undefined')
             }
             return transfer.available
         }catch (e) {
@@ -257,7 +256,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/accounts/transferable?currency=${coinName}&type=${transferType}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinTransfer, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinTransfer, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -266,22 +265,22 @@ class Kucoin implements KucoinImplement {
     async InnerTransfer(coinName: string, amount: string, fromAc: string = '', toAc: string = ''): Promise<KucoinOrderIdData> {
         try {
             let formatParams:{[key:string]:string} = {
-                "amount": amount,
-                "currency": coinName,
-                "clientOid": generateUUID(),
+                'amount': amount,
+                'currency': coinName,
+                'clientOid': generateUUID(),
             }
             if (fromAc !== '') formatParams['from'] = fromAc
             if (toAc !== '') formatParams['to'] = toAc
 
             if (this.dryRun) {
                 console.info(`----- InnerTransfer ----- \n ${JSON.stringify(formatParams)}`)
-                return {orderId: "dryRun"}
+                return {orderId: 'dryRun'}
             }
             const params = this.generateParameters(formatParams)
             const path = '/v2/accounts/inner-transfer'
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('POST', path, params)
-            return await this.commonResponseProcess<KucoinSendOrder, "data">(endPoint, 'POST', headers, params)
+            return await this.commonResponseProcess<KucoinSendOrder, 'data'>(endPoint, 'POST', headers, params)
         }catch (e) {
             throw e;
         }
@@ -293,7 +292,7 @@ class Kucoin implements KucoinImplement {
             for (const market of markets) {
                 enableCoins[market] = false
             }
-            const marketInfo = await this.getMarketInfo("")
+            const marketInfo = await this.getMarketInfo('')
             if (marketInfo === undefined) {
                 return enableCoins
             }
@@ -312,20 +311,20 @@ class Kucoin implements KucoinImplement {
             for (const market of Object.keys(markets)) {
                 enableCoins[market] = false
             }
-            const marketInfo = await this.getMarketInfo("")
+            const marketInfo = await this.getMarketInfo('')
             if (marketInfo === undefined) {
                 return enableCoins
             }
             for (const info of marketInfo) {
                 if (
-                    Decimal.cmp(info.baseMinSize, markets[info.symbol]["orderAmount"]) >= 0
-                    || Decimal.cmp(info.baseMaxSize, markets[info.symbol]["orderAmount"]) <= 0
+                    Decimal.cmp(info.baseMinSize, markets[info.symbol]['orderAmount']) >= 0
+                    || Decimal.cmp(info.baseMaxSize, markets[info.symbol]['orderAmount']) <= 0
                 ) {
                     console.warn(`orderAmount is valid. ${info.symbol} orderAmount: ${markets[info.symbol]['orderAmount']} min: ${info.baseMinSize} max: ${info.baseMaxSize}`)
                     continue
                 }
 
-                if (Decimal.cmp(info.minFunds, markets[info.symbol]["orderBaseAmount"]) >= 0) {
+                if (Decimal.cmp(info.minFunds, markets[info.symbol]['orderBaseAmount']) >= 0) {
                     console.warn(`orderBaseAmount is too small. ${info.symbol} orderBaseAmount: ${markets[info.symbol]['orderBaseAmount']} min: ${info.minFunds}`)
                     continue
                 }
@@ -349,7 +348,7 @@ class Kucoin implements KucoinImplement {
             const params = this.generateParameters(formatParams)
             const headers = this.getHeaders('POST', path, params)
 
-            return await this.commonResponseProcess<KucoinDepositAddress, "data">(endPoint, 'POST', headers, params)
+            return await this.commonResponseProcess<KucoinDepositAddress, 'data'>(endPoint, 'POST', headers, params)
         }catch (e) {
             throw e;
         }
@@ -361,7 +360,7 @@ class Kucoin implements KucoinImplement {
             if (coinName !== '') path += `?currency=${coinName}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinDepositAddressList, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinDepositAddressList, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -372,7 +371,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/sub/user`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinUserInfo, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinUserInfo, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -385,7 +384,7 @@ class Kucoin implements KucoinImplement {
             if (urlParams !== '') path += `?${urlParams}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinDepositHistory, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinDepositHistory, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -396,7 +395,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/market/orderbook/level2_${level}?symbol=${symbol}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinOrderBook, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinOrderBook, 'data'>(endPoint, 'GET', headers)
         }catch (e) {
             throw e;
         }
@@ -409,7 +408,7 @@ class Kucoin implements KucoinImplement {
         }
         let orderRate: decType = 0
         let baseRate: number = 1
-        if (tradeType === "limit") {
+        if (tradeType === 'limit') {
             if (this.orderSide === OrderSide.Buy) {
                 if (orderBook.bids.length === 0 || orderBook.bids[0].length === 0) {
                     throw new Error(`getOrderRate failed. ${symbol}`)
@@ -489,7 +488,7 @@ class Kucoin implements KucoinImplement {
             const path = `/v1/orders/${orderId}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
-            return await this.commonResponseProcess<KucoinOrder, "data">(endPoint, 'GET', headers)
+            return await this.commonResponseProcess<KucoinOrder, 'data'>(endPoint, 'GET', headers)
         } catch (e) {
             console.error(e)
             throw e
@@ -510,10 +509,10 @@ class Kucoin implements KucoinImplement {
                 if (urlParameters !== '') path = `${path}?${urlParameters}`
                 const endPoint = `${this.baseUrl}${path}`
                 const headers = this.getHeaders('GET', path)
-                const orderData = await this.commonResponseProcess<KucoinOrderList, "data">(endPoint, 'GET', headers)
+                const orderData = await this.commonResponseProcess<KucoinOrderList, 'data'>(endPoint, 'GET', headers)
                 items = orderData.items
             }
-            if (items.length === 0) throw new Error("getOrders failed")
+            if (items.length === 0) throw new Error('getOrders failed')
             const [orders, cancelOrderIds] = this.formatOrders(items)
             return items
         }catch (e) {
@@ -535,45 +534,45 @@ class Kucoin implements KucoinImplement {
 
     async getCancelOrder(symbol: string, tradeType: string, orderIds: string[]): Promise<KucoinOrderData> {
         const orderIdsTxt = orderIds.join(',')
-        const params:{[key: string]: string} = {"symbol": symbol, "tradeType": tradeType, "orderIds": orderIdsTxt}
+        const params:{[key: string]: string} = {'symbol': symbol, 'tradeType': tradeType, 'orderIds': orderIdsTxt}
         const urlParameters = this.generateUrlParameters(this.generateParameters(params))
         const path = `v1/stop-order?${urlParameters}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('GET', path)
-        return this.commonResponseProcess(endPoint, 'GET', headers)
+        return this.commonResponseProcess<KucoinOrder, 'data'>(endPoint, 'GET', headers)
     }
 
     async order(orderRate: string, orderAmount: string): Promise<KucoinOrderIdData> {
         const param = {
-            "symbol": this.symbol,
-            "side": this.orderSide,
-            "size": orderAmount,
-            "price": orderRate,
-            "type": "limit",
-            "clientOid": generateUUID()
+            'symbol': this.symbol,
+            'side': this.orderSide,
+            'size': orderAmount,
+            'price': orderRate,
+            'type': 'limit',
+            'clientOid': generateUUID()
         }
         const path = 'v1/orders'
         const endPoint = `${this.baseUrl}${path}`
         const parameters = this.generateParameters(param)
-        const headers = this.getHeaders("POST", path, parameters)
-        return this.commonResponseProcess(endPoint, 'POST', headers, parameters)
+        const headers = this.getHeaders('POST', path, parameters)
+        return this.commonResponseProcess<KucoinSendOrder, 'data'>(endPoint, 'POST', headers, parameters)
     }
 
     async cancelOrder(orderId: string): Promise<KucoinCancelOrderData> {
         const path = `v1/orders/${orderId}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('DELETE', path)
-        return this.commonResponseProcess(endPoint, 'DELETE', headers)
+        return this.commonResponseProcess<KucoinCancelOrder, 'data'>(endPoint, 'DELETE', headers)
     }
 
     async cancelOrders(symbol: string, orderIds: string[]): Promise<KucoinCancelOrderData> {
-        let params: {[key: string]: string} = {"symbol": symbol, "tradeType": "TRADE"}
+        let params: {[key: string]: string} = {'symbol': symbol, 'tradeType': 'TRADE'}
         if (orderIds.length > 0) params['orderIds'] = orderIds.join(',')
         const urlParameters = this.generateUrlParameters(this.generateParameters(params))
         const path = `v1/stop-order/cancel?${urlParameters}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('DELETE', path)
-        return this.commonResponseProcess(endPoint, 'DELETE', headers)
+        return this.commonResponseProcess<KucoinCancelOrder, 'data'>(endPoint, 'DELETE', headers)
     }
 
     isOrderData(obj: any): obj is KucoinOrderData {

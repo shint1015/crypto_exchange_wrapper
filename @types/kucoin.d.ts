@@ -12,7 +12,7 @@ type CommonResponse = {
 type KucoinMarketListData = string[];
 
 type KucoinMarketList = CommonResponse & {
-    data: MarketListData
+    data: KucoinMarketListData
 }
 
 type KucoinMarketInfoData = {
@@ -52,7 +52,7 @@ type KucoinMarketStatusData = {
 }
 
 type KucoinMarketStatus = CommonResponse & {
-    data: MarketStatusData
+    data: KucoinMarketStatusData
 }
 
 type KucoinTickerData = {
@@ -67,7 +67,7 @@ type KucoinTickerData = {
 }
 
 type KucoinTicker = CommonResponse & {
-    data: TickerData
+    data: KucoinTickerData
 }
 
 type KucoinTradeFeeData = {
@@ -77,7 +77,7 @@ type KucoinTradeFeeData = {
 }
 
 type KucoinTradeFee = CommonResponse & {
-    data: TradeFeeData[]
+    data: KucoinTradeFeeData[]
 }
 
 type KucoinTradeHistoryData = {
@@ -89,7 +89,7 @@ type KucoinTradeHistoryData = {
 }
 
 type KucoinTradeHistory = CommonResponse & {
-    data: TradeHistoryData[]
+    data: KucoinTradeHistoryData[]
 }
 
 type KucoinAccountInfoData = {
@@ -125,14 +125,14 @@ type KucoinTransferData = {
 }
 
 type KucoinTransfer = CommonResponse & {
-    data: TransferData
+    data: KucoinTransferData
 }
 
 type KucoinOrderIdData = {
     orderId: string
 }
 type KucoinSendOrder = CommonResponse & {
-    data: OrderIdData
+    data: KucoinOrderIdData
 }
 
 type KucoinCancelOrderData = {
@@ -140,7 +140,7 @@ type KucoinCancelOrderData = {
 }
 
 type KucoinCancelOrder = CommonResponse & {
-    data: CancelOrderData
+    data: KucoinCancelOrderData
 }
 
 type KucoinOrderData = {
@@ -177,7 +177,7 @@ type KucoinOrderData = {
 }
 
 type KucoinOrder = CommonResponse & {
-    data: OrderData
+    data: KucoinOrderData
 }
 
 type KucoinOrderDataList = {
@@ -185,15 +185,15 @@ type KucoinOrderDataList = {
     pageSize: number
     totalNum: number
     totalPage: number
-    items: OrderData[]
+    items: KucoinOrderData[]
 }
 
 type KucoinOrderList = CommonResponse & {
-    data: OrderDataList
+    data: KucoinOrderDataList
 }
 
 type KucoinInnerTransfer = CommonResponse & {
-    data: OrderIdData
+    data: KucoinOrderIdData
 }
 
 type KucoinDepositAddressData = {
@@ -203,11 +203,11 @@ type KucoinDepositAddressData = {
 }
 
 type KucoinDepositAddress = CommonResponse & {
-    data: DepositAddressData
+    data: KucoinDepositAddressData
 }
 
 type KucoinDepositAddressList = CommonResponse & {
-    data: DepositAddressData[]
+    data: KucoinDepositAddressData[]
 }
 
 type KucoinUserInfoData = {
@@ -220,7 +220,7 @@ type KucoinUserInfoData = {
 }
 
 type KucoinUserInfo = CommonResponse & {
-    data: UserInfoData[]
+    data: KucoinUserInfoData[]
 }
 
 type KucoinDepositHistoryDataItem = {
@@ -243,7 +243,7 @@ type KucoinDepositHistoryData = {
     pageSize: number,
     totalNum: number,
     totalPage: number,
-    items: DepositHistoryDataItem[]
+    items: KucoinDepositHistoryDataItem[]
 }
 
 type KucoinDepositHistory = CommonResponse & {

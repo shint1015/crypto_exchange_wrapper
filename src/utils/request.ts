@@ -1,5 +1,5 @@
-import { isObjectEmpty } from "./utils.js";
-import { Logger } from "./logger.js";
+import { isObjectEmpty } from './utils.js';
+import { Logger } from './logger.js';
 
 export type HttpResponse = {
     Status: string
@@ -8,7 +8,7 @@ export type HttpResponse = {
     Body: string
 }
 
-const logger = new Logger("dev", "request")
+const logger = new Logger('dev', 'request')
 
 async function httpRequest(method: string, url: string, headers?: {[key: string]: string}, parameters?: {[key: string]: any}): Promise<HttpResponse> {
     try{

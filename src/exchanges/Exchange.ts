@@ -1,7 +1,5 @@
-import { Kucoin } from "./Kucoin";
-import { Decimal, decType } from "../utils/calc";
-import { stringify } from "querystring";
-
+import { Kucoin } from './Kucoin';
+import { Decimal, decType } from '../utils/calc';
 
 export enum ExchangeType {
     KuCoin = 'kucoin',
@@ -75,6 +73,7 @@ export class Exchange implements ExchangeImplement {
             throw new Error('ExchangeType is not supported')
         }
     }
+
     get exchangeType() { return this._exchangeType }
     get symbol() { return this._symbol }
     get orderSide() { return this._orderSide }
@@ -264,8 +263,8 @@ export class Exchange implements ExchangeImplement {
 
     getMarket(symbol: string): string {
         if (this.exchangeType === ExchangeType.KuCoin) {
-            if (symbol === "USDT") {
-                return "USDT"
+            if (symbol === 'USDT') {
+                return 'USDT'
             }
         }
         return symbol
@@ -273,14 +272,14 @@ export class Exchange implements ExchangeImplement {
 
     convertToMarketInfo(marketInfo: KucoinMarketInfoData): MarketInfoData {
         return {
-            "symbol":             marketInfo.symbol,
-            "baseCoin":           marketInfo.baseCurrency,
-            "quoteCoin":          marketInfo.quoteCurrency,
-            "baseCoinPrecision":  marketInfo.baseIncrement,
-            "quoteCoinPrecision": marketInfo.quoteIncrement,
-            "minOrderAmount":     marketInfo.baseMinSize,
-            "maxOrderAmount":     marketInfo.baseMaxSize,
-            "minFunds":           marketInfo.minFunds,
+            'symbol':             marketInfo.symbol,
+            'baseCoin':           marketInfo.baseCurrency,
+            'quoteCoin':          marketInfo.quoteCurrency,
+            'baseCoinPrecision':  marketInfo.baseIncrement,
+            'quoteCoinPrecision': marketInfo.quoteIncrement,
+            'minOrderAmount':     marketInfo.baseMinSize,
+            'maxOrderAmount':     marketInfo.baseMaxSize,
+            'minFunds':           marketInfo.minFunds,
         }
     }
 }
