@@ -2,10 +2,7 @@ import { checkDataExist, generateHMAC, generateUUID } from '../utils/utils.js';
 import {httpGet, httpPost, httpDelete, HttpResponse} from '../utils/request.js';
 import { Decimal, decType } from '../utils/calc.js';
 import BigNumber from 'bignumber.js';
-import { OrderSide, ExchangeType, FormatOrder } from './Exchange.js';
-import * as path from 'path';
-
-
+import { OrderSide, FormatOrder } from './Exchange.js';
 
 interface KucoinImplement {
     _baseUrl: string;
@@ -158,7 +155,7 @@ class Kucoin implements KucoinImplement {
             if (response === undefined) {
                 throw new Error('Response is undefined');
             }
-            const checkResponse = JSON.parse(JSON.stringify(response.Body))
+            const checkResponse = JSON.parse(response.Body)
             if (!checkDataExist(checkResponse, returnTarget.toString())) {
                 return checkResponse[returnTarget] as T[U];
             }
@@ -512,7 +509,7 @@ class Kucoin implements KucoinImplement {
                 items = orderData.items
             }
             if (items.length === 0) throw new Error('getOrders failed')
-            const [orders, cancelOrderIds] = this.formatOrders(items)
+            // const [orders, cancelOrderIds] = this.formatOrders(items)
             return items
         }catch (e) {
             console.error(e)
