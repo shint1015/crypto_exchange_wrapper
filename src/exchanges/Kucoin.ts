@@ -1,4 +1,4 @@
-import { generateHMAC, generateUUID } from '../utils/utils.js';
+import { checkDataExist, generateHMAC, generateUUID } from '../utils/utils.js';
 import {httpGet, httpPost, httpDelete, HttpResponse} from '../utils/request.js';
 import { Decimal, decType } from '../utils/calc.js';
 import BigNumber from 'bignumber.js';
@@ -159,10 +159,9 @@ class Kucoin implements KucoinImplement {
                 throw new Error('Response is undefined');
             }
             const checkResponse = JSON.parse(JSON.stringify(response.Body))
-            if (!checkResponse.hasOwnProperty(returnTarget) || Object.keys(checkResponse[returnTarget]).length === 0) {
+            if (checkDataExist(checkResponse, returnTarget.toString())) {
                 return checkResponse[returnTarget] as T[U];
             }
-
             const toObj = checkResponse as T;
             return toObj[returnTarget];
         }catch (e) {

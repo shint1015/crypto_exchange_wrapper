@@ -20,5 +20,22 @@ function generateUUID(): string {
     return crypto.randomUUID().replace(/-/g, '');
 }
 
+const isType = (obj: any, type: string): boolean => {
+    return obj !== null && typeof obj === type
+}
 
-export {isObjectEmpty,generateHMAC, generateUUID}
+const checkDataExist = (obj: {[key: string]: any}, targetColumn: string): boolean => {
+
+    if (!obj.hasOwnProperty(targetColumn)) return false
+
+    if (Array.isArray(obj[targetColumn])) return obj[targetColumn].length > 0
+
+    if (isType(obj, 'object')) return Object.keys(obj[targetColumn]).length > 0
+
+    if (isType(obj[targetColumn], 'string')) return obj[targetColumn] !== ''
+
+    return false
+}
+
+
+export {isObjectEmpty,generateHMAC, generateUUID, checkDataExist, isType}
