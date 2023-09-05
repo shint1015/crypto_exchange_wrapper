@@ -1,5 +1,6 @@
 import { Kucoin } from './Kucoin';
 import { Decimal, decType } from '../utils/calc';
+import BigNumber from "bignumber.js";
 
 export enum ExchangeType {
     KuCoin = 'kucoin',
@@ -59,9 +60,10 @@ export class Exchange implements ExchangeImplement {
     _orderType: string;
     _dryRun: boolean;
     _exchange: Kucoin;
+    _calcMod: Decimal
 
 
-    constructor(exchangeType: ExchangeType, symbol: string, orderSide: OrderSide, orderType: string, apiConf:{[key: string]: string}, dryRun: boolean = false, baseUrl: string = '') {
+    constructor(exchangeType: ExchangeType, symbol: string, orderSide: OrderSide, orderType: string, apiConf:{[key: string]: string}, calcModuleConf: {[key: string]: any} = {}, dryRun: boolean = false, baseUrl: string = '') {
         this._exchangeType = exchangeType;
         this._symbol = symbol;
         this._orderSide = orderSide;
@@ -72,6 +74,12 @@ export class Exchange implements ExchangeImplement {
         } else {
             throw new Error('ExchangeType is not supported')
         }
+
+        if (calcModuleConf.decimalPrecision !== undefined && calcModuleConf.roundingMode !== undefined) {
+            this._calcMod = new Decimal(calcModuleConf.decimalPrecision, calcModuleConf.roundingMode)
+        } else {
+            this._calcMod = new Decimal(6, BigNumber.ROUND_HALF_DOWN)
+        }
     }
 
     get exchangeType() { return this._exchangeType }
@@ -80,6 +88,7 @@ export class Exchange implements ExchangeImplement {
     get orderType() { return this._orderType }
     get dryRun() { return this._dryRun }
     get exchange() { return this._exchange }
+    get calcMod() { return this._calcMod }
 
 
     async getMarketList(): Promise<string[]> {

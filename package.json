@@ -1,6 +1,6 @@
 {
   "name": "@shint1015/crypto_exchange_wrapper",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "crypto exchange api wrapper of a npm package",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
