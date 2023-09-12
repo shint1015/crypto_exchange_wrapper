@@ -16,6 +16,7 @@ type MarketInfoData = {
     minOrderAmount: string
     maxOrderAmount: string
     minFunds: string
+    enableTrading: boolean
 }
 
 // type UserInfoData = {

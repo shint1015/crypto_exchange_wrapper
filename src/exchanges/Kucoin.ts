@@ -25,7 +25,7 @@ interface KucoinImplement {
     getAccounts(): Promise<KucoinAccountInfoData[]|undefined>;
     getCoinAmount(symbol: string): Promise<string>;
     getTransfer(coinName: string, transferType: string): Promise<KucoinTransferData|undefined>;
-    InnerTransfer(coinName: string, amount: string, fromAc: string, toAc: string): Promise<KucoinOrderIdData|undefined>;
+    innerTransfer(coinName: string, amount: string, fromAc: string, toAc: string): Promise<KucoinOrderIdData>;
     checkEnableTrade(markets: string[]): Promise<{[key: string]: boolean}>;
     checkOrderSize(markets: {[key: string]: {[key: string]: string}}): Promise<{[key: string]: boolean}>;
     generateDepositAddress(coinName: string, chain: string): Promise<KucoinDepositAddressData|undefined>;
@@ -258,7 +258,7 @@ class Kucoin implements KucoinImplement {
         }
     }
 
-    async InnerTransfer(coinName: string, amount: string, fromAc: string = '', toAc: string = ''): Promise<KucoinOrderIdData> {
+    async innerTransfer(coinName: string, amount: string, fromAc: string = '', toAc: string = ''): Promise<KucoinOrderIdData> {
         try {
             let formatParams:{[key:string]:string} = {
                 'amount': amount,

@@ -49,6 +49,7 @@ interface ExchangeImplement{
     getCoinDetail(symbol: string): Promise<{[key: string]: string}>
     getDepositHistory(params: {[key: string]: any}): Promise<{[key: string]: string}[]>
     getTransferBalance(symbol: string, account: string): Promise<{[key: string]: string}>
+    innerTransfer(coinName: string, amount: string, fromAc: string, toAc: string): Promise<KucoinOrderIdData>;
     getMarket(symbol: string): string
     convertToMarketInfo(marketInfo: KucoinMarketInfoData): MarketInfoData
 }
@@ -234,6 +235,7 @@ export class Exchange implements ExchangeImplement {
         }
     }
 
+    // @param params: {currency: string, startAt: number, endAt: number, status: string[PROCESSING, SUCCESS, FAILURE], currentPage: number, pageSize: number}
     async getDepositHistory(params: {[key: string]: any}): Promise<{[key: string]: string}[]> {
         const histories = await this.exchange.getDepositHistory(params)
         if (histories === undefined) {
@@ -270,6 +272,18 @@ export class Exchange implements ExchangeImplement {
         return balance
     }
 
+    // @param coinName: coin name
+    // @param amount: amount
+    // @param fromAc: main, trade, margin, or isolated
+    // @param toAc: main, trade, margin, or isolated
+    async innerTransfer(coinName: string, amount: string, fromAc: string, toAc: string): Promise<KucoinOrderIdData> {
+        const transfer = await this.exchange.innerTransfer(coinName, amount, fromAc, toAc)
+        if (transfer === undefined) {
+            throw new Error('Failed to inner transfer')
+        }
+        return transfer
+    }
+
     getMarket(symbol: string): string {
         if (this.exchangeType === ExchangeType.KuCoin) {
             if (symbol === 'USDT') {
@@ -289,6 +303,7 @@ export class Exchange implements ExchangeImplement {
             'minOrderAmount':     marketInfo.baseMinSize,
             'maxOrderAmount':     marketInfo.baseMaxSize,
             'minFunds':           marketInfo.minFunds,
+            'enableTrading':      marketInfo.enableTrading,
         }
     }
 }
