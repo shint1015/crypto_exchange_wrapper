@@ -112,6 +112,23 @@ export class Exchange implements ExchangeImplement {
         return result
     }
 
+    // getAccountDetails returns account details(balance, available, holds)
+    async getAccountDetails(): Promise<{[key: string]:{[key: string]: decType}}> {
+        let accounts = await this.exchange.getAccounts()
+        if (accounts === undefined) {
+            throw new Error('Failed to get accounts')
+        }
+        let result: {[key: string]:{[key: string]: decType}} = {}
+        for (const val of accounts) {
+            result[val.currency] = {
+                balance: Decimal.toDec(val.balance),
+                available: Decimal.toDec(val.available),
+                holds: Decimal.toDec(val.holds)
+            }
+        }
+        return result
+    }
+
     async getMarketInfo(market: string): Promise<MarketInfoData[]|undefined> {
         const marketInfo = await this.exchange.getMarketInfo(market)
         if (marketInfo === undefined) {
