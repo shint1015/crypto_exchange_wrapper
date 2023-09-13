@@ -454,7 +454,7 @@ class Kucoin implements KucoinImplement {
             const fromCoin = (v.side === 'buy') ? symbols[1] : symbols[0]
             const toCoin = (v.side === 'buy') ? symbols[0] : symbols[1]
             let orderStatus: OrderStatus = OrderStatus.InProcess
-            if (v.size === v.dealSize) orderStatus = OrderStatus.Finish
+            if (v.size === v.dealSize) orderStatus = OrderStatus.Done
             if (v.cancelExist) orderStatus = OrderStatus.Cancel
 
             if (v.id in orders) {

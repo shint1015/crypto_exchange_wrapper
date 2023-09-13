@@ -1,7 +1,7 @@
 enum OrderStatus {
     InProcess = 'in_process',
     Cancel = 'cancel',
-    Finish = 'finish',
+    Done = 'done',
 }
 
 type CommonResponse = {
