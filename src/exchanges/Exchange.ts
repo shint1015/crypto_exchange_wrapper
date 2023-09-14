@@ -100,14 +100,14 @@ export class Exchange implements ExchangeImplement {
         return marketList
     }
 
-    async getAccounts(): Promise<{[key: string]:decType}> {
+    async getAccounts(): Promise<{[key: string]:string}> {
         let accounts= await this.exchange.getAccounts()
         if (accounts === undefined) {
             throw new Error('Failed to get accounts')
         }
-        let result:{[key: string]:decType} = {}
+        let result:{[key: string]:string} = {}
         for (const val of accounts) {
-            result[val.currency] = Decimal.toDec(val.balance)
+            result[val.currency] = val.balance
         }
         return result
     }

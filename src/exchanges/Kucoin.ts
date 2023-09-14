@@ -293,6 +293,7 @@ class Kucoin implements KucoinImplement {
                 return enableCoins
             }
             for (const info of marketInfo) {
+                if (!markets.includes(info.symbol)) continue
                 if (info.enableTrading) enableCoins[info.symbol] = true
             }
             return enableCoins
@@ -312,6 +313,9 @@ class Kucoin implements KucoinImplement {
                 return enableCoins
             }
             for (const info of marketInfo) {
+                if (!markets[info.symbol]) continue
+                if(!(markets[info.symbol]['orderAmount']) || !(markets[info.symbol]['orderBaseAmount'])) continue
+
                 if (
                     Decimal.cmp(info.baseMinSize, markets[info.symbol]['orderAmount']) >= 0
                     || Decimal.cmp(info.baseMaxSize, markets[info.symbol]['orderAmount']) <= 0
