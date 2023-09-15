@@ -100,30 +100,71 @@ export class Exchange implements ExchangeImplement {
         return marketList
     }
 
-    async getAccounts(): Promise<{[key: string]:string}> {
-        let accounts= await this.exchange.getAccounts()
-        if (accounts === undefined) {
-            throw new Error('Failed to get accounts')
-        }
+    /**
+     * accountType of all is get all account balances(main, trade, margin)
+     * @param accountType main, trade, margin, or all
+     * @param coinName coin name
+     * @return {Promise<{[key: string]:string}>} account balances
+     */
+    async getAccounts(accountType: string='all', coinName?: string): Promise<{[key: string]:string}> {
         let result:{[key: string]:string} = {}
-        for (const val of accounts) {
-            result[val.currency] = val.balance
+        if (accountType === 'all') {
+            for (const acType of ['main', 'trade']) {
+                let accounts= await this.exchange.getAccounts(acType, coinName)
+                if (accounts === undefined) continue
+                for (const val of accounts) {
+                    if (!result[val.currency])
+                        result[val.currency] = val.balance
+                    else
+                        result[val.currency] = this.calcMod.add(result[val.currency], val.balance).toString()
+                }
+            }
+        } else {
+            let accounts= await this.exchange.getAccounts(accountType, coinName)
+            if (accounts === undefined) {
+                throw new Error('Failed to get accounts')
+            }
+            for (const val of accounts) {
+                result[val.currency] = val.balance
+            }
+
         }
         return result
     }
 
-    // getAccountDetails returns account details(balance, available, holds)
-    async getAccountDetails(): Promise<{[key: string]:{[key: string]: decType}}> {
-        let accounts = await this.exchange.getAccounts()
-        if (accounts === undefined) {
-            throw new Error('Failed to get accounts')
-        }
-        let result: {[key: string]:{[key: string]: decType}} = {}
-        for (const val of accounts) {
-            result[val.currency] = {
-                balance: Decimal.toDec(val.balance),
-                available: Decimal.toDec(val.available),
-                holds: Decimal.toDec(val.holds)
+    /**
+     * @param accountType main, trade, margin, or all
+     * @param coinName coin name
+     * @return {Promise<{[key: string]:{[key: string]: string}}>}  return account balance detail(balance, available, holds)
+     */
+    async getAccountDetails(accountType: string='all', coinName?: string): Promise<{[key: string]:{[key: string]: {[key: string]: string}}}> {
+
+        let result: {[key: string]:{[key: string]: {[key: string]: string}}} = {}
+        if (accountType === 'all') {
+            for (const acType of ['main', 'trade', 'margin']) {
+                let accounts= await this.exchange.getAccounts(acType, coinName)
+                if (accounts === undefined) continue
+                for (const val of accounts) {
+                    result[val.currency] = {}
+                    result[val.currency][acType] = {
+                        'balance': val.balance,
+                        'available': val.available,
+                        'holds': val.holds
+                    }
+                }
+            }
+        } else {
+            let accounts= await this.exchange.getAccounts(accountType, coinName)
+            if (accounts === undefined) {
+                throw new Error('Failed to get accounts')
+            }
+            for (const val of accounts) {
+                result[val.currency] = {}
+                result[val.currency][accountType] = {
+                    'balance': val.balance,
+                    'available': val.available,
+                    'holds': val.holds
+                }
             }
         }
         return result
@@ -143,8 +184,15 @@ export class Exchange implements ExchangeImplement {
         return result
     }
 
-    async getOrderRate(tradeType: string, adjustRate: string, OrderAmount: decType, ...arg: string[]): Promise<decType> {
-        const orderRate = await this.exchange.getOrderRate(tradeType, adjustRate, OrderAmount, ...arg)
+    /**
+     *
+     * @param tradeType
+     * @param adjustRate
+     * @param OrderAmount
+     * @param args args[0] is symbol name
+     */
+    async getOrderRate(tradeType: string, adjustRate: string, OrderAmount: decType, ...args: string[]): Promise<decType> {
+        const orderRate = await this.exchange.getOrderRate(tradeType, adjustRate, OrderAmount, ...args)
         if (orderRate === undefined) {
             throw new Error('Failed to get order rate')
         }

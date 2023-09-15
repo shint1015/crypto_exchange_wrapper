@@ -224,9 +224,16 @@ class Kucoin implements KucoinImplement {
         }
     }
 
-    async getAccounts(): Promise<KucoinAccountInfoData[]> {
+    /**
+     * @param accountType main, trade, margin
+     * @param coinName BTC, ETH, etc...
+     * @returns {Promise<KucoinAccountInfoData[]>}
+     */
+    async getAccounts(accountType: string='main', coinName?: string): Promise<KucoinAccountInfoData[]> {
         try {
-            const path = `/v1/accounts`
+            let path = `/v1/accounts`
+            if (accountType !== '') path += `?type=${accountType}`
+            if(coinName !== undefined && coinName !== '') path += `&currency=${coinName}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
             return await this.commonResponseProcess<KucoinAccountInfo, 'data'>(endPoint, 'GET', headers)
@@ -249,6 +256,7 @@ class Kucoin implements KucoinImplement {
 
     async getTransfer(coinName: string, transferType: string): Promise<KucoinTransferData> {
         try {
+            transferType = transferType.toUpperCase()
             const path = `/v1/accounts/transferable?currency=${coinName}&type=${transferType}`
             const endPoint = `${this.baseUrl}${path}`
             const headers = this.getHeaders('GET', path)
@@ -401,7 +409,8 @@ class Kucoin implements KucoinImplement {
         }
     }
 
-    async getOrderRate(tradeType: string, adjustRate: string, orderAmount: decType, symbol: string = this.symbol): Promise<decType> {
+    async getOrderRate(tradeType: string, adjustRate: string, orderAmount: decType, ...args: string[]): Promise<decType> {
+        const symbol = (args.length > 0) ? args[0] : this.symbol
         const orderBook = await this.getOrderBook(symbol)
         if (orderBook === undefined) {
             throw new Error(`getOrderRate failed. ${symbol}`)
