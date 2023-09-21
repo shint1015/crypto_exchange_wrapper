@@ -1,9 +1,3 @@
-enum OrderStatus {
-    InProcess = 'in_process',
-    Cancel = 'cancel',
-    Done = 'done',
-}
-
 type CommonResponse = {
     code: string
     msg: string

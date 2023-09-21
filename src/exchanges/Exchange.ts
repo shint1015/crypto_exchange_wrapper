@@ -21,7 +21,7 @@ export type FormatOrder = {
     orderFee: decType
     fromAmount: decType
     toAmount: decType
-    orderStatus: OrderStatus
+    orderStatus: string
 }
 
 
@@ -61,7 +61,10 @@ export class Exchange implements ExchangeImplement {
     _orderType: string;
     _dryRun: boolean;
     _exchange: Kucoin;
-    _calcMod: Decimal
+    _calcMod: Decimal;
+    _pricePrecision: number = 6;
+    _amountPrecision: number = 6;
+
 
 
     constructor(exchangeType: ExchangeType, symbol: string, orderSide: OrderSide, orderType: string, apiConf:{[key: string]: string}, calcModuleConf: {[key: string]: any} = {}, dryRun: boolean = false, baseUrl: string = '') {
@@ -81,6 +84,25 @@ export class Exchange implements ExchangeImplement {
         } else {
             this._calcMod = new Decimal(6, BigNumber.ROUND_HALF_DOWN)
         }
+        const symbols = this.symbol.split('-')
+        if (symbols.length === 2 && symbols[0] !== '') {
+            const market = this.getMarket(symbols[0])
+            this.exchange.getMarketInfo(market).then((marketInfo) => {
+                if (marketInfo !== undefined) {
+                    for (const val of marketInfo) {
+                        if (val.symbol === symbol) {
+                            const baseIncrements = val.baseIncrement.split('.')
+                            const priceIncrement = val.priceIncrement.split('.')
+                            this._amountPrecision = baseIncrements[1] ? baseIncrements[1].length : 6
+                            this._pricePrecision = priceIncrement[1] ? priceIncrement[1].length : 6
+                            break
+                        }
+                    }
+                }
+            })
+        }
+
+
     }
 
     get exchangeType() { return this._exchangeType }
@@ -90,6 +112,8 @@ export class Exchange implements ExchangeImplement {
     get dryRun() { return this._dryRun }
     get exchange() { return this._exchange }
     get calcMod() { return this._calcMod }
+    get amountPrecision() { return this._amountPrecision }
+    get pricePrecision() { return this._pricePrecision }
 
 
     async getMarketList(): Promise<string[]> {
@@ -189,10 +213,10 @@ export class Exchange implements ExchangeImplement {
      * @param tradeType
      * @param adjustRate
      * @param OrderAmount
-     * @param args args[0] is symbol name
+     * @param symbol default is this.symbol
      */
-    async getOrderRate(tradeType: string, adjustRate: string, OrderAmount: decType, ...args: string[]): Promise<decType> {
-        const orderRate = await this.exchange.getOrderRate(tradeType, adjustRate, OrderAmount, ...args)
+    async getOrderRate(tradeType: string, adjustRate: string, OrderAmount: decType, symbol?: string): Promise<decType> {
+        const orderRate = await this.exchange.getOrderRate(tradeType, adjustRate, OrderAmount, symbol)
         if (orderRate === undefined) {
             throw new Error('Failed to get order rate')
         }
@@ -352,7 +376,7 @@ export class Exchange implements ExchangeImplement {
     getMarket(symbol: string): string {
         if (this.exchangeType === ExchangeType.KuCoin) {
             if (symbol === 'USDT') {
-                return 'USDT'
+                return 'USDS'
             }
         }
         return symbol

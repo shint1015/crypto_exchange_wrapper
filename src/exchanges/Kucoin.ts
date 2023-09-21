@@ -4,6 +4,12 @@ import { Decimal, decType } from '../utils/calc.js';
 import BigNumber from 'bignumber.js';
 import { OrderSide, FormatOrder } from './Exchange.js';
 
+enum OrderStatus {
+    InProcess = 'in_process',
+    Cancel = 'cancel',
+    Done = 'done',
+}
+
 interface KucoinImplement {
     _baseUrl: string;
     _symbol: string;
@@ -328,7 +334,7 @@ class Kucoin implements KucoinImplement {
                     Decimal.cmp(info.baseMinSize, markets[info.symbol]['orderAmount']) >= 0
                     || Decimal.cmp(info.baseMaxSize, markets[info.symbol]['orderAmount']) <= 0
                 ) {
-                    console.warn(`orderAmount is valid. ${info.symbol} orderAmount: ${markets[info.symbol]['orderAmount']} min: ${info.baseMinSize} max: ${info.baseMaxSize}`)
+                    console.warn(`orderAmount is invalid. ${info.symbol} orderAmount: ${markets[info.symbol]['orderAmount']} min: ${info.baseMinSize} max: ${info.baseMaxSize}`)
                     continue
                 }
 
@@ -409,8 +415,8 @@ class Kucoin implements KucoinImplement {
         }
     }
 
-    async getOrderRate(tradeType: string, adjustRate: string, orderAmount: decType, ...args: string[]): Promise<decType> {
-        const symbol = (args.length > 0) ? args[0] : this.symbol
+    async getOrderRate(tradeType: string, adjustRate: string, orderAmount: decType, symbol?: string): Promise<decType> {
+        if (symbol === undefined || symbol === '') symbol = this.symbol
         const orderBook = await this.getOrderBook(symbol)
         if (orderBook === undefined) {
             throw new Error(`getOrderRate failed. ${symbol}`)
@@ -460,17 +466,22 @@ class Kucoin implements KucoinImplement {
         let orders: {[key:string]: FormatOrder} = {}
         let cancelOrderIds: string[] = []
         for (const v of items) {
+            if (v.symbol === undefined) continue
             const pairSymbol = v.symbol
             const symbols = pairSymbol.split('-')
             const fromAmount = (v.side === 'buy') ? v.dealFunds : v.dealSize
             const toAmount = (v.side === 'buy') ? v.dealSize : v.dealFunds
             const fromCoin = (v.side === 'buy') ? symbols[1] : symbols[0]
             const toCoin = (v.side === 'buy') ? symbols[0] : symbols[1]
-            let orderStatus: OrderStatus = OrderStatus.InProcess
+            let orderStatus = OrderStatus.InProcess
             if (v.size === v.dealSize) orderStatus = OrderStatus.Done
             if (v.cancelExist) orderStatus = OrderStatus.Cancel
 
             if (v.id in orders) {
+                orders[v.id].fromAmount = Decimal.add(orders[v.id].fromAmount, fromAmount)
+                orders[v.id].toAmount = Decimal.add(orders[v.id].toAmount, toAmount)
+                orders[v.id].orderFee = Decimal.add(orders[v.id].orderFee, v.fee)
+            } else {
                 orders[v.id] = {
                     symbol: pairSymbol,
                     orderType: v.type,
@@ -483,10 +494,6 @@ class Kucoin implements KucoinImplement {
                     toAmount:    Decimal.toDec(toAmount),
                     orderStatus: orderStatus,
                 }
-            } else {
-                orders[v.id].fromAmount = Decimal.add(orders[v.id].fromAmount, fromAmount)
-                orders[v.id].toAmount = Decimal.add(orders[v.id].toAmount, toAmount)
-                orders[v.id].orderFee = Decimal.add(orders[v.id].orderFee, v.fee)
             }
         }
         return [orders, cancelOrderIds]
@@ -510,7 +517,7 @@ class Kucoin implements KucoinImplement {
             if ('orderIds' in params) {
                 for (const v of params['orderIds']) {
                     const order = await this.getOrder(v)
-                    if (this.isOrderData(order)) items.push(order)
+                    items.push(order)
                 }
             } else {
                 const urlParameters = this.generateUrlParameters(params)
@@ -522,7 +529,6 @@ class Kucoin implements KucoinImplement {
                 items = orderData.items
             }
             if (items.length === 0) throw new Error('getOrders failed')
-            // const [orders, cancelOrderIds] = this.formatOrders(items)
             return items
         }catch (e) {
             console.error(e)
@@ -545,7 +551,7 @@ class Kucoin implements KucoinImplement {
         const orderIdsTxt = orderIds.join(',')
         const params:{[key: string]: string} = {'symbol': symbol, 'tradeType': tradeType, 'orderIds': orderIdsTxt}
         const urlParameters = this.generateUrlParameters(this.generateParameters(params))
-        const path = `v1/stop-order?${urlParameters}`
+        const path = `/v1/stop-order?${urlParameters}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('GET', path)
         return this.commonResponseProcess<KucoinOrder, 'data'>(endPoint, 'GET', headers)
@@ -560,7 +566,7 @@ class Kucoin implements KucoinImplement {
             'type': 'limit',
             'clientOid': generateUUID()
         }
-        const path = 'v1/orders'
+        const path = '/v1/orders'
         const endPoint = `${this.baseUrl}${path}`
         const parameters = this.generateParameters(param)
         const headers = this.getHeaders('POST', path, parameters)
@@ -568,7 +574,7 @@ class Kucoin implements KucoinImplement {
     }
 
     async cancelOrder(orderId: string): Promise<KucoinCancelOrderData> {
-        const path = `v1/orders/${orderId}`
+        const path = `/v1/orders/${orderId}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('DELETE', path)
         return this.commonResponseProcess<KucoinCancelOrder, 'data'>(endPoint, 'DELETE', headers)
@@ -578,7 +584,7 @@ class Kucoin implements KucoinImplement {
         let params: {[key: string]: string} = {'symbol': symbol, 'tradeType': 'TRADE'}
         if (orderIds.length > 0) params['orderIds'] = orderIds.join(',')
         const urlParameters = this.generateUrlParameters(this.generateParameters(params))
-        const path = `v1/stop-order/cancel?${urlParameters}`
+        const path = `/v1/stop-order/cancel?${urlParameters}`
         const endPoint = `${this.baseUrl}${path}`
         const headers = this.getHeaders('DELETE', path)
         return this.commonResponseProcess<KucoinCancelOrder, 'data'>(endPoint, 'DELETE', headers)

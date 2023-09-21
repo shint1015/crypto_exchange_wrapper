@@ -40,6 +40,10 @@ export class Decimal {
         return this.toDec(a).comparedTo(this.toDec(b));
     }
 
+    dp(a: decType, dpNum: number, roundingMode= BigNumber.ROUND_DOWN): BigNumber {
+        return BigNumber(a).dp(dpNum, roundingMode)
+    }
+
     static toDec(num: decType): BigNumber {
         return BigNumber(num);
     }
